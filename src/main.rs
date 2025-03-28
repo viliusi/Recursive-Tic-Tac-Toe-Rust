@@ -1,3 +1,5 @@
+use console::Term;
+
 fn main() {
     // 0 = empty
     // 1 = X
@@ -23,10 +25,27 @@ fn main() {
     // If you have 3 pieces on already, you will need to move them, by first pressing on it to mark
     // it red, then pressing an empty space, to mark it green. And then press enter to confirm your
     // move.
-    
-    print_boards(&mut board);
+        
+    let stdout = Term::buffered_stdout();
+
+    'game_loop: loop {
+        if let Ok(character) = stdout.read_char() {
+            match character {
+                'r' => print_full_board(&mut board),
+                _ => break 'game_loop,
+            }
+        }
+    }
     
 }
+
+// Function to show which players turn it is and so on
+fn print_gui() {
+    print!("{esc}c", esc = 27 as char);
+    // TODO: Set up the player turn system
+    println!("Player x's turn");
+}
+
     // Pass a reference to the board array so it can be printed
     // First three lines will have ⎸ to part the boards
     // Between 3rd and 4th line will be ---+---+---
@@ -42,7 +61,9 @@ fn main() {
     // ///I///I///
     // ///I///I///
     // ///I///I///
-fn print_boards(board: &mut [[u8; 9]; 9]) {
+fn print_full_board(board: &mut [[u8; 9]; 9]) {
+    print_gui();
+
     let iterations = 3; 
 
     let mut i;
