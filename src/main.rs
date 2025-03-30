@@ -11,16 +11,16 @@ fn main() {
     let mut board = [[0u8; 9]; 9];
 
     // Denotes which board is currently being played on
-    // 0 means that it is up to your choice, either at the start of the game, or if the send to
+    // 9 means that it is up to your choice, either at the start of the game, or if the send to
     // board is done
-    let mut focus = 0;
+    let mut focus = 9;
 
-    // Shows which board we are previewing, 0 means we are looking at all the boards
-    let mut preview = 0;
+    // Shows which board we are previewing, 9 means we are looking at all the boards
+    let mut preview = 9;
 
     // Stores the inputted value up until it is confirmed
-    // 0 is unchosen
-    let mut held_move = 0;
+    // 9 is unchosen
+    let mut held_move = 9;
 
     // For when you need to move pieces, if you pick up a piece, but want to unpick it up, this
     // value will be used
@@ -60,14 +60,17 @@ fn main() {
                     print_full_board(&mut board, &mut preview);
                 }
                 '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' => {
-                    match preview {
-                        0 => view_board(character, &mut board, &mut preview, current_players_turn, &mut held_move),
+                    let index = input_to_index(character);
+    
+                    match index {
+                        9 => view_board(character, &mut board, &mut preview, current_players_turn, &mut held_move),
                         _ => {
                             try_move(character, &mut board, &mut focus, &mut preview, &mut held_move, current_players_turn);
                             view_board(character, &mut board, &mut preview, current_players_turn, &mut held_move);
                         }
                     }
                 }
+                '\n' => confirm_move(&mut board, &mut held_move, &mut focus, &mut preview, &mut current_players_turn),
                 'q' => break 'game_loop,
                 'h' => println!("E to view all boards, Q to quit game, 1-9 to interact, enter to confirm move."),
                 _ => println!("Not a recognized input, press H for help."),
@@ -78,7 +81,7 @@ fn main() {
 }
 
 // Preview a specific board
-fn view_board(input: char, board: &mut [[u8; 9]; 9], preview: &mut usize, current_turn: bool, held_move: &mut u8) {
+fn view_board(input: char, board: &mut [[u8; 9]; 9], preview: &mut u8, current_turn: bool, held_move: &mut u8) {
     print_gui(current_turn);
 
     let iterations = 3;
@@ -87,7 +90,7 @@ fn view_board(input: char, board: &mut [[u8; 9]; 9], preview: &mut usize, curren
     // fix should work, hopefully.
     let index = input_to_index(input);
 
-    let mut i = 0;
+    let mut i : u8 = 0;
     let mut i_target = 0;
 
     println!("+---+");
@@ -97,12 +100,10 @@ fn view_board(input: char, board: &mut [[u8; 9]; 9], preview: &mut usize, curren
         i = i_target;
 
         for _num in 0..iterations {
-            let piece = board[index][i];
-    
-            // TODO Get this to work, currently it's broken and only checks first i
-            match i { 
-                held_move => {
-                    match piece {
+            let piece = board[index as usize][i as usize];
+
+            if *held_move == i {
+                 match piece {
                         0 => {
                             match current_turn {
                                 true => print!("X"),
@@ -117,17 +118,16 @@ fn view_board(input: char, board: &mut [[u8; 9]; 9], preview: &mut usize, curren
                             });
 
                             // TODO get this reference to work
-                            // *held_move = 0;
+                            *held_move = 9;
                         }
                     }
-                }
-                _ => { 
-                    match piece {
+            }
+            else {
+                 match piece {
                         1 => print!("X"),
                         2 => print!("O"),
                         _ => print!("/"),
                     }
-                }
             }
 
             i += 1;
@@ -143,14 +143,15 @@ fn view_board(input: char, board: &mut [[u8; 9]; 9], preview: &mut usize, curren
     *preview = index;
 }
 
-fn input_to_index(input: char) -> usize {
-    let index: usize = input as usize - 49;
+fn input_to_index(input: char) -> u8 {
+    let index: u8 = input as u8 - 49;
     index
 }
 
 // Check for if the chosen move is possible
-fn try_move(input: char, board: &mut [[u8; 9]; 9], focus: &mut u8, preview: &mut usize, held_move: &mut u8, current_turn: bool) {
+fn try_move(input: char, board: &mut [[u8; 9]; 9], focus: &mut u8, preview: &mut u8, held_move: &mut u8, current_turn: bool) {
     let index = input_to_index(input);
+
     match preview {
         index => {
             *held_move = *index as u8;
@@ -160,8 +161,31 @@ fn try_move(input: char, board: &mut [[u8; 9]; 9], focus: &mut u8, preview: &mut
 }
 
 // Confirm the placement, add to board, clear held_move and change the focus for next player
-fn confirm_move(board: &mut [[u8;9]; 9], held_move: u8, focus: &mut u8) {
+fn confirm_move(board: &mut [[u8;9]; 9], held_move: &mut u8, focus: &mut u8, preview: &mut u8, player_turn: &mut bool) {
+    // Check the placement
+    if *focus == 9 {
+        // Move to any board
+        println!("possible move");
+
+        // Check if there is nothing there
+    }
+    else if *focus == *preview {
+        // If trying to move on a possible board
+
+    }
+    else {
+        println!("Not possible");
+    }
+
+    // Add to board array
     
+
+    // Set held_move to 9
+    
+
+    // Change player turn bool
+
+
 }
 
 // Clears the console window
@@ -194,7 +218,7 @@ fn print_gui(player_turn: bool) {
     // ///I///I///
     // ///I///I///
     // ///I///I///
-fn print_full_board(board: &mut [[u8; 9]; 9], preview: &mut usize) {
+fn print_full_board(board: &mut [[u8; 9]; 9], preview: &mut u8) {
     let iterations = 3; 
 
     let mut i;
@@ -242,6 +266,6 @@ fn print_full_board(board: &mut [[u8; 9]; 9], preview: &mut usize) {
         println!("+---+---+---+");
     }
 
-    *preview = 0;
+    *preview = 9;
 }
 
