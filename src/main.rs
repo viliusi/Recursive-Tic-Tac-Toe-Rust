@@ -15,10 +15,8 @@ fn main() {
     // board is done
     let mut focus = 0;
 
-    // Refers to if the script is looking at a specific board, or all of them.
-    // If false, then we are looking at all
-    // If true, we are looking at a specific board
-    let mut preview = false;
+    // Shows which board we are previewing, 0 means we are looking at all the boards
+    let mut preview = 0;
 
     // Stores the inputted value up until it is confirmed
     // 0 is unchosen
@@ -28,8 +26,8 @@ fn main() {
     // value will be used
     let mut return_pos = 0;
 
-    // true = player 1
-    // false = player 2
+    // true = player 1 X
+    // false = player 2 O
     let mut current_players_turn = true;
 
     // Start screen
@@ -63,8 +61,11 @@ fn main() {
                 }
                 '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' => {
                     match preview {
-                        true => try_move(character, &mut board, &mut focus),
-                        false => view_board(character, &mut board, &mut preview),
+                        0 => view_board(character, &mut board, &mut preview, current_players_turn, &mut held_move),
+                        _ => {
+                            try_move(character, &mut board, &mut focus, &mut preview, &mut held_move, current_players_turn);
+                            view_board(character, &mut board, &mut preview, current_players_turn, &mut held_move);
+                        }
                     }
                 }
                 'q' => break 'game_loop,
@@ -77,14 +78,14 @@ fn main() {
 }
 
 // Preview a specific board
-fn view_board(input: char, board: &mut [[u8; 9]; 9], preview: &mut bool) {
-    clear_screen();
+fn view_board(input: char, board: &mut [[u8; 9]; 9], preview: &mut usize, current_turn: bool, held_move: &mut u8) {
+    print_gui(current_turn);
 
     let iterations = 3;
 
     // I don't quite understand this, but when I press 1, it gives 49 normally, 2 gives 50, so this
     // fix should work, hopefully.
-    let index: usize = input as usize - 49;
+    let index = input_to_index(input);
 
     let mut i = 0;
     let mut i_target = 0;
@@ -93,15 +94,40 @@ fn view_board(input: char, board: &mut [[u8; 9]; 9], preview: &mut bool) {
     for _num in 0..iterations {
         print!("|");
 
-        for _num in 0..iterations {
-            i = i_target;
+        i = i_target;
 
+        for _num in 0..iterations {
             let piece = board[index][i];
-                    
-            match piece {
-                1 => print!("x"),
-                2 => print!("O"),
-                _ => print!("/"),
+    
+            // TODO Get this to work, currently it's broken and only checks first i
+            match i { 
+                held_move => {
+                    match piece {
+                        0 => {
+                            match current_turn {
+                                true => print!("X"),
+                                false => print!("O"),
+                            }
+                        }
+                        _ => {
+                            (match piece {
+                                1 => print!("X"),
+                                2 => print!("O"),
+                                _ => print!("/"),
+                            });
+
+                            // TODO get this reference to work
+                            // *held_move = 0;
+                        }
+                    }
+                }
+                _ => { 
+                    match piece {
+                        1 => print!("X"),
+                        2 => print!("O"),
+                        _ => print!("/"),
+                    }
+                }
             }
 
             i += 1;
@@ -114,12 +140,23 @@ fn view_board(input: char, board: &mut [[u8; 9]; 9], preview: &mut bool) {
     }
     println!("+---+");
 
-    *preview = true;
+    *preview = index;
+}
+
+fn input_to_index(input: char) -> usize {
+    let index: usize = input as usize - 49;
+    index
 }
 
 // Check for if the chosen move is possible
-fn try_move(input: char, board: &mut [[u8; 9]; 9], focus: &mut u8) {
-    println!("Move tried");
+fn try_move(input: char, board: &mut [[u8; 9]; 9], focus: &mut u8, preview: &mut usize, held_move: &mut u8, current_turn: bool) {
+    let index = input_to_index(input);
+    match preview {
+        index => {
+            *held_move = *index as u8;
+        }
+        _ => println!("Can't make a move on this board."),
+    }
 }
 
 // Confirm the placement, add to board, clear held_move and change the focus for next player
@@ -157,7 +194,7 @@ fn print_gui(player_turn: bool) {
     // ///I///I///
     // ///I///I///
     // ///I///I///
-fn print_full_board(board: &mut [[u8; 9]; 9], preview: &mut bool) {
+fn print_full_board(board: &mut [[u8; 9]; 9], preview: &mut usize) {
     let iterations = 3; 
 
     let mut i;
@@ -182,7 +219,7 @@ fn print_full_board(board: &mut [[u8; 9]; 9], preview: &mut bool) {
                     let piece = board[i][j];
                     
                     match piece {
-                        1 => print!("x"),
+                        1 => print!("X"),
                         2 => print!("O"),
                         _ => print!("/"),
                     }
@@ -205,6 +242,6 @@ fn print_full_board(board: &mut [[u8; 9]; 9], preview: &mut bool) {
         println!("+---+---+---+");
     }
 
-    *preview = false;
+    *preview = 0;
 }
 
