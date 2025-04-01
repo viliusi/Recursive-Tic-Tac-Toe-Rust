@@ -1,4 +1,6 @@
 use console::Term;
+use std::thread;
+use std::time;
 
 fn main() {
     // 0 = empty
@@ -60,14 +62,32 @@ fn main() {
                     print_full_board(&mut board, &mut preview);
                 }
                 '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' => {
-                    let index = input_to_index(character);
-    
-                    match index {
-                        9 => view_board(character, &mut board, &mut preview, current_players_turn, &mut held_move),
-                        _ => {
-                            try_move(character, &mut board, &mut focus, &mut preview, &mut held_move, current_players_turn);
-                            view_board(character, &mut board, &mut preview, current_players_turn, &mut held_move);
-                        }
+                    if (preview == 9 as u8) {
+                        held_move = 9;
+                        return_pos = 9;
+
+                        view_board(character, &mut board, &mut preview, current_players_turn, &mut held_move);
+                    }
+                    else {
+                        // TODO Figure out why i need to try twice, before it actually works, it's
+                        // as if held_move lacks behind
+                        
+                        try_move(character, &mut board, &mut focus, &mut preview, &mut held_move, current_players_turn);
+
+                        // DEBUG
+                        let index = input_to_index(character);
+
+                        println!("{}", index);
+                        println!("{}", held_move);
+
+                        if (held_move != index as u8) {
+                            println!("not equal");
+                        } 
+                        
+                        thread::sleep(time::Duration::from_millis(5000));
+                        // \DEBUG
+
+                        view_board(character, &mut board, &mut preview, current_players_turn, &mut held_move);
                     }
                 }
                 '\n' => confirm_move(&mut board, &mut held_move, &mut focus, &mut preview, &mut current_players_turn),
@@ -87,7 +107,7 @@ fn view_board(input: char, board: &mut [[u8; 9]; 9], preview: &mut u8, current_t
     let iterations = 3;
 
     // I don't quite understand this, but when I press 1, it gives 49 normally, 2 gives 50, so this
-    // fix should work, hopefully.
+    // fix should work, hopefully. (I think it's because of the keycodes)
     let index = input_to_index(input);
 
     let mut i : u8 = 0;
@@ -152,11 +172,15 @@ fn input_to_index(input: char) -> u8 {
 fn try_move(input: char, board: &mut [[u8; 9]; 9], focus: &mut u8, preview: &mut u8, held_move: &mut u8, current_turn: bool) {
     let index = input_to_index(input);
 
+    // switch to if
     match preview {
         index => {
             *held_move = *index as u8;
         }
-        _ => println!("Can't make a move on this board."),
+        _ => {
+            println!("Can't make a move on this board.");
+            *held_move = 9;
+        }
     }
 }
 
