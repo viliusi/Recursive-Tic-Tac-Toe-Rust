@@ -62,7 +62,7 @@ fn main() {
                     print_full_board(&mut board, &mut preview);
                 }
                 '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' => {
-                    if (preview == 9 as u8) {
+                    if (preview == 9) {
                         held_move = 9;
                         return_pos = 9;
 
@@ -82,7 +82,9 @@ fn main() {
 
                         if (held_move != index as u8) {
                             println!("not equal");
-                        } 
+                        }
+
+                        println!("{}", preview);
                         
                         thread::sleep(time::Duration::from_millis(5000));
                         // \DEBUG
@@ -103,6 +105,8 @@ fn main() {
 // Preview a specific board
 fn view_board(input: char, board: &mut [[u8; 9]; 9], preview: &mut u8, current_turn: bool, held_move: &mut u8) {
     print_gui(current_turn);
+
+    print_debug(input, board, preview, current_turn, held_move);
 
     let iterations = 3;
 
@@ -225,6 +229,12 @@ fn print_gui(player_turn: bool) {
         true => println!("Player 1's turn."),
         false => println!("Player 2's turn."),
     }
+}
+
+fn print_debug(input: char, board: &mut [[u8; 9]; 9], preview: &mut u8, current_turn: bool, held_move: &mut u8) {
+    println!("Input index: {}", input_to_index(input));
+    println!("Preview: {}", preview);
+    println!("Held move: {}", held_move);
 }
 
     // Pass a reference to the board array so it can be printed
